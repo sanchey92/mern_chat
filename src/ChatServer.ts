@@ -21,12 +21,12 @@ export default class ChatServer {
   constructor() {
     this.port = process.env.PORT || 8000;
     this.MONGO_URI = process.env.MONGO_URI!;
-    this.connectDB().then(() => console.log('connected to db'));
+    this.userRoute = userRoutes;
     this.app = express();
     this.server = createServer(this.app)
-    this.configApp();
-    this.userRoute = userRoutes;
     this.io = socket(this.server);
+    this.connectDB().then(() => console.log('connected to db'));
+    this.configApp();
   }
 
   private configApp(): void {
