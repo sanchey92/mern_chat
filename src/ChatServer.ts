@@ -6,6 +6,7 @@ import {connect} from "mongoose";
 import cors from 'cors';
 import dotenv from 'dotenv';
 import userRoutes from './Routes/User';
+import chatroomRoutes from './Routes/Chatroom';
 
 dotenv.config();
 
@@ -16,12 +17,14 @@ export default class ChatServer {
   private io: SocketIO.Server
   private readonly MONGO_URI: string;
   private readonly port: any;
-  private readonly userRoute: any
+  private readonly userRoute: any;
+  private readonly chatroomRoute: any;
 
   constructor() {
     this.port = process.env.PORT || 8000;
     this.MONGO_URI = process.env.MONGO_URI!;
     this.userRoute = userRoutes;
+    this.chatroomRoute = chatroomRoutes;
     this.app = express();
     this.server = createServer(this.app)
     this.io = socket(this.server);
@@ -33,7 +36,8 @@ export default class ChatServer {
     this.app.use(json());
     this.app.use(urlencoded({extended: true}));
     this.app.use(cors());
-    this.app.use('/user', userRoutes);
+    this.app.use('/user', this.userRoute);
+    this.app.use('/chatroom', this.chatroomRoute);
   }
 
   private async connectDB(): Promise<any> {
