@@ -3,16 +3,24 @@ import ChatroomController from "../Controllers/ChatroomController";
 import {check} from 'express-validator';
 import {checkAuth} from "../Middlewares/checkAuth";
 
-const router = Router();
-const chatroom = new ChatroomController()
+export default class ChatroomRoutes {
+  public router: Router;
+  public chatroomController: ChatroomController = new ChatroomController();
 
-// @ts-ignore
-router.use(checkAuth)
+  constructor() {
+    this.router = Router();
+    this.privateConfig();
+    this.routes();
+  }
 
-router.post('/',
-  [
-    check('name').not().isEmpty()
-  ],
-  chatroom.createChatroom);
+  private privateConfig(): void {
+    // @ts-ignore
+    this.router.use(checkAuth);
+  }
 
-export default router;
+  private routes(): void {
+    this.router.post('/',
+      [check('name').not().isEmpty()],
+      this.chatroomController.createChatroom);
+  }
+}

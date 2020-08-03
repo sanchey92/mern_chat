@@ -2,22 +2,30 @@ import {Router} from "express";
 import UserController from "../Controllers/UserController";
 import {check} from 'express-validator';
 
-const userController = new UserController();
-const router = Router();
+export default class UserRoutes {
+  public router: Router;
+  public userController: UserController = new UserController();
 
-router.post('/signup',
-  [
-    check('name').not().isEmpty(),
-    check('email').normalizeEmail().isEmail(),
-    check('password').isLength({min: 6})
-  ],
-  userController.signup);
-router.post('/signin',
-  [
-    check('email').normalizeEmail().isEmail(),
-    check('password').isLength({min: 6})
-  ],
-userController.signin
-)
+  constructor() {
+    this.router = Router();
+    this.routes();
+  }
 
-export default router;
+  public routes(): void {
+    this.router.post('/signup',
+      [
+        check('name').not().isEmpty(),
+        check('email').normalizeEmail().isEmail(),
+        check('password').isLength({min: 6})
+      ],
+      this.userController.signup);
+    this.router.post('/signin',
+      [
+        check('email').normalizeEmail().isEmail(),
+        check('password').isLength({min: 6})
+      ],
+      this.userController.signin
+    )
+  }
+
+}

@@ -5,39 +5,39 @@ import socket from 'socket.io';
 import {connect} from "mongoose";
 import cors from 'cors';
 import dotenv from 'dotenv';
-import userRoutes from './Routes/User';
-import chatroomRoutes from './Routes/Chatroom';
+import UserRoutes from './Routes/User';
+import ChatroomRoutes from "./Routes/Chatroom";
 
 dotenv.config();
 
 export default class ChatServer {
 
-  private readonly server: Server;
+  private readonly MONGO_URI =  process.env.MONGO_URI!;
+  private readonly port = process.env.PORT || 8000;
+  private readonly userRouter = new UserRoutes().router;
+  private readonly chatroomRouter = new ChatroomRoutes().router;
   private readonly app: Application;
+  private readonly server: Server;
   private io: SocketIO.Server
-  private readonly MONGO_URI: string;
-  private readonly port: any;
-  private readonly userRoute: any;
-  private readonly chatroomRoute: any;
 
   constructor() {
-    this.port = process.env.PORT || 8000;
-    this.MONGO_URI = process.env.MONGO_URI!;
-    this.userRoute = userRoutes;
-    this.chatroomRoute = chatroomRoutes;
     this.app = express();
     this.server = createServer(this.app)
     this.io = socket(this.server);
     this.connectDB().then(() => console.log('connected to db'));
     this.configApp();
+    this.routes();
   }
 
   private configApp(): void {
     this.app.use(json());
     this.app.use(urlencoded({extended: true}));
     this.app.use(cors());
-    this.app.use('/user', this.userRoute);
-    this.app.use('/chatroom', this.chatroomRoute);
+  }
+
+  private routes(): void {
+    this.app.use('/user', this.userRouter);
+    this.app.use('/chatroom', this.chatroomRouter);
   }
 
   private async connectDB(): Promise<any> {
