@@ -7,6 +7,9 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import UserRoutes from './Routes/User';
 import ChatroomRoutes from "./Routes/Chatroom";
+import jwt from 'jsonwebtoken';
+import User from "./Models/User";
+import Message from "./Models/Message";
 
 dotenv.config();
 
@@ -26,6 +29,7 @@ export default class ChatServer {
     this.io = socket(this.server);
     this.connectDB().then(() => console.log('connected to db'));
     this.configApp();
+    this.configIO()
     this.routes();
   }
 
@@ -52,9 +56,53 @@ export default class ChatServer {
     }
   }
 
+  private configIO(): void {
+    this.io.use(async (socket: any, next) => {
+      try {
+        const token = socket.handshake.query.token;
+        const payload: any = await jwt.verify(token, 'secret');
+        socket.userId = payload.id;
+        next();
+      } catch (err) {}
+    });
+  }
+
   public start(): void {
     this.app.listen(this.port, () => {
       console.log('server started')
+
+      io.on("connection", (socket) => {
+        console.log("Connected: " + socket.userId);
+
+        socket.on("disconnect", () => {
+          console.log("Disconnected: " + socket.userId);
+        });
+
+        socket.on("joinRoom", ({ chatroomId }) => {
+          socket.join(chatroomId);
+          console.log("A user joined chatroom: " + chatroomId);
+        });
+
+        socket.on("leaveRoom", ({ chatroomId }) => {
+          socket.leave(chatroomId);
+          console.log("A user left chatroom: " + chatroomId);
+        });
+
+        socket.on("chatroomMessage", async ({ chatroomId, message }) => {
+          if (message.trim().length > 0) {
+            const user = await User.findOne({ _id: socket.userId });
+            const newMessage = new Message({
+              chatroom: chatroomId,
+              user: socket.userId,
+              message,
+            });
+            io.to(chatroomId).emit("newMessage", {
+              message,
+              name: user.name,
+              userId: socket.userId,
+            });
+            await newMessage.save();
+          }
     })
   }
 }

@@ -4,6 +4,16 @@ import Chatroom, {IChatroom} from "../Models/Chatroom";
 
 export default class ChatroomController {
 
+  public async getChatrooms(req: Request, res: Response): Promise<any> {
+
+    try {
+      const chatrooms = await Chatroom.find({});
+      res.json(chatrooms);
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
   public async createChatroom(req: Request, res: Response): Promise<any> {
     const errors = validationResult(req);
 

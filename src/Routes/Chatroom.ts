@@ -19,6 +19,7 @@ export default class ChatroomRoutes {
   }
 
   private routes(): void {
+    this.router.get('/', this.chatroomController.getChatrooms);
     this.router.post('/',
       [check('name').not().isEmpty()],
       this.chatroomController.createChatroom);
